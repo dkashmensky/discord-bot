@@ -1,0 +1,33 @@
+const javaString = Java.type('java.lang.String');
+const PrintWriter = Java.type('java.io.PrintWriter');
+const Files = Java.type('java.nio.file.Files');
+const Paths = Java.type('java.nio.file.Paths');
+const StandardCharsets = Java.type('java.nio.charset.StandardCharsets')
+const PBotCharacterAPI = Java.type('haven.purus.pbot.PBotCharacterAPI');
+const PBotUtils = Java.type('haven.purus.pbot.PBotUtils');
+const window = PBotUtils.PBotWindow("Chatter", 70, 275, ScriptID);
+window.addLabel("Press button to start", 10, 10);
+const startBtn = window.addButton("startClick", "Start", 90, 10, 30);
+
+const startClick = () => {
+	PBotUtils.sysMsg('Chatter bot start');
+  // PBotCharacterAPI.msgToChat('Tarant', 'Привет, я бот и умею писать в чат');
+  while(true) {
+    try {
+      const file = Files.readAllBytes(Paths.get('discord.txt'));
+      const newfile = new javaString(file, 'UTF-8');
+      if (newfile) {
+        let result = '';
+        for(i=0; i<newfile.length; i++) {
+          result += newfile[i];
+        }
+        PBotCharacterAPI.msgToChat('Tarant', result);
+        const pw = new PrintWriter('discord.txt');
+        pw.close();
+      }
+    } catch(e) {
+      PBotUtils.sysMsg('error: ' + e);
+    }
+    PBotUtils.sleep(500);
+  }
+};
