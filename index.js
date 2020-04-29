@@ -22,28 +22,50 @@ function checkSize(file) {
   }
 }
 
-function checkMentions(message) {
-  let text = message;
+function replaceString(type, text, matches) {
+  let returnText = text;
 
-  if (!config.users.length) {
-    return text;
-  }
+  const settings = {
+    separator: type === 'user' ? '!' : '*',
+    control: type === 'user' ? '@' : '@&',
+    type: type === 'user' ? 'users' : 'roles',
+    checkAll: type === 'user',
+  };
 
-  const mentions = text.match(/(![^\s]+)/gm);
-  if (!mentions) {
-    return text;
-  }
+  matches.forEach((item) => {
+    const alias = item.split(settings.separator)[1];
 
-  mentions.forEach((item) => {
-    const alias = item.split('!')[1];
-    const user = config.users.find((elem) => elem.alias === alias);
+    if (settings.checkAll) {
+      if (alias === config.mentions.all) {
+        returnText = returnText.replace(item, '@everyone');
+        return;
+      }
+    }
 
-    if (!user) {
+    const elem = config.mentions[settings.type].find((element) => element.alias === alias);
+
+    if (!elem) {
       return;
     }
 
-    text = text.replace(item, `<@${user.id}>`);
+    returnText = returnText.replace(item, `<${settings.control}${elem.id}>`);
   });
+
+  return returnText;
+}
+
+function checkMentions(message) {
+  let text = message;
+
+  const userMentions = text.match(/(![^\s]+)/gm);
+  if (userMentions) {
+    text = replaceString('user', text, userMentions);
+  }
+
+  const roleMentions = text.match(/(\*[^\s]+)/gm);
+  if (roleMentions) {
+    text = replaceString('role', text, roleMentions);
+  }
 
   return text;
 }
