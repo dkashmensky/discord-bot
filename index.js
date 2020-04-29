@@ -12,14 +12,40 @@ let md5Previous;
 function cleanUpFile(file) {
   fs.writeFileSync(config.filepath, '');
   fs.writeFileSync(`${config.backupPath}/chat_backup_${randomString({ length: 10 })}.txt`, file);
+  console.log('Log file was too big, created new one');
 }
 
 function checkSize(file) {
   const filesize = fs.statSync(config.filepath).size;
-  console.log(filesize / 1000000.0);
   if (filesize / 1000000.0 > config.filesizeLimit) {
     cleanUpFile(file);
   }
+}
+
+function checkMentions(message) {
+  let text = message;
+
+  if (!config.users.length) {
+    return text;
+  }
+
+  const mentions = text.match(/(![^\s]+)/gm);
+  if (!mentions) {
+    return text;
+  }
+
+  mentions.forEach((item) => {
+    const alias = item.split('!')[1];
+    const user = config.users.find((elem) => elem.alias === alias);
+
+    if (!user) {
+      return;
+    }
+
+    text = text.replace(item, `<@${user.id}>`);
+  });
+
+  return text;
 }
 
 function sendMessage(bot) {
@@ -27,7 +53,7 @@ function sendMessage(bot) {
   const linedData = file.split('\n');
   const lastMessage = linedData[linedData.length - 2];
   if (lastMessage && lastMessage.indexOf(`[${config.chatName}]`) !== -1) {
-    bot.send(lastMessage.split(`[${config.chatName}]`)[1]);
+    bot.send(checkMentions(lastMessage.split(`[${config.chatName}]`)[1]));
   }
 
   checkSize(file);

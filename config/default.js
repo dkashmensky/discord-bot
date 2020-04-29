@@ -5,4 +5,5 @@ module.exports = {
   filepath: '', // chatlog.txt file path relative to project dir, example: ../../LauncherUpdate/chatlog.txt
   backupPath: '', // backup file path, folder should exist, example: ../../LauncherUpdate/LOGS
   filesizeLimit: 1.0, // size limit when chatlog.txt backed up and cleaned up, float
+  users: [], // Discord users array of objects, { alias: string, id: string } (for mentions)
 };
